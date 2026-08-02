@@ -1,5 +1,7 @@
 # club-site-generator-core
 
+The core for all the sites created using the site generator.
+
 The shared static-site generator engine behind every club's website. This repo
 contains **no club data** — `build.js`, the JSON schema, and the HTML/CSS
 templates only. Each club's actual content (`club.json`, `images/`) lives in
@@ -49,6 +51,23 @@ controlled by `CLUB_DATA_DIR`:
   directory. In a club repo where this engine sits at `generator/` and
   `club.json` sits one level up at the repo root, `CLUB_DATA_DIR=..` is what
   every real Cloudflare project sets.
+
+## Letting one club customize its design
+
+A club that wants a genuinely custom look (not just the `theme` colors/fonts
+in `club.json`) can add a `custom-template/` folder at its own repo root
+(sibling to `club.json`, **not** inside `generator/`), mirroring `template/`'s
+structure. `build.js` checks there first for every template file it loads —
+`page.html`, `app-shell.html`, `style.css`, `app-shell.css`,
+`sections/*.html` — and only falls back to this repo's built-in version for
+files the club didn't override. A club can override just one file (e.g. only
+`style.css`) and keep using the default for everything else.
+
+This is the supported way for a club to diverge from the shared design.
+Editing files under `generator/` directly instead is unsupported — a future
+`git subtree pull` there is a real git merge and can produce conflicts;
+`custom-template/` never syncs from here at all, so it's conflict-free by
+construction.
 
 ## Propagating a fix to every club
 

@@ -615,14 +615,20 @@ async function copyAndOptimizeImages(clubDir) {
             continue;
         }
         try {
-            const image = sharp(srcPath);
+            // { animated: true } carries every frame through for animated
+            // GIF/WEBP. sharp drops EXIF/ICC/GPS metadata by default unless
+            // .withMetadata() is called — routing every raster image through
+            // sharp (not just the ones being resized) means an uploaded
+            // photo's camera/location metadata never reaches the publicly
+            // served dist/images/, even when no resize happens.
+            const image = sharp(srcPath, { animated: true });
             const meta = await image.metadata();
             if (meta.width && meta.width > MAX_WIDTH) {
                 await image.resize({ width: MAX_WIDTH }).jpeg({ quality: JPEG_QUALITY }).toFile(outPath);
                 console.log(`  ↳ optimized ${file}: ${meta.width}px → ${MAX_WIDTH}px, JPEG q${JPEG_QUALITY}`);
             } else {
-                fs.copyFileSync(srcPath, outPath);
-                console.log(`  ↳ copied ${file} (${meta.width || "?"}px, under ${MAX_WIDTH}px)`);
+                await image.toFile(outPath);
+                console.log(`  ↳ stripped metadata from ${file} (${meta.width || "?"}px, under ${MAX_WIDTH}px)`);
             }
         } catch (err) {
             console.warn(`  ⚠ could not process ${file}: ${err.message} — copied as-is`);
