@@ -11,10 +11,30 @@ const { resolveSlug, clubDataDir } = require("./scripts/club-target");
 // ---------- Paths & constants ----------
 const ROOT = __dirname;
 const TEMPLATE_DIR = path.join(ROOT, "template");
-const SECTIONS_DIR = path.join(TEMPLATE_DIR, "sections");
 const DIST_DIR = path.join(ROOT, "dist");
 const SCHEMA_PATH = path.join(ROOT, "club.schema.json");
 const BUILD_MARKER_PATH = path.join(ROOT, ".club-build-slug");
+
+// Set once per build (in buildClub(), before any rendering happens) to that
+// club's own custom-template/ folder, sibling to its club.json. Safe as a
+// module-level variable because a single build.js process only ever builds
+// one club. Lets one club fully or partially override the shared design
+// (drop a custom style.css, page.html, sections/officers.html, etc.) without
+// ever touching generator/ itself — which is what keeps generator/ safe to
+// git-subtree-sync from club-site-generator-core even for a club that's
+// customized its look.
+let TEMPLATE_OVERRIDE_DIR = null;
+
+// Resolves a path relative to the template root (e.g. "page.html",
+// "sections/officers.html", "style.css") to that club's override file if it
+// provides one, else falls back to the engine's built-in template/.
+function resolveTemplatePath(relPath) {
+    if (TEMPLATE_OVERRIDE_DIR) {
+        const overridePath = path.join(TEMPLATE_OVERRIDE_DIR, relPath);
+        if (fs.existsSync(overridePath)) return overridePath;
+    }
+    return path.join(TEMPLATE_DIR, relPath);
+}
 
 const MAX_WIDTH = 1600;
 const JPEG_QUALITY = 80;
@@ -129,7 +149,7 @@ function fillTokens(str, data) {
 }
 
 function loadPartial(name) {
-    return fs.readFileSync(path.join(SECTIONS_DIR, `${name}.html`), "utf8");
+    return fs.readFileSync(resolveTemplatePath(`sections/${name}.html`), "utf8");
 }
 
 // ---------- Section renderers ----------
@@ -299,7 +319,7 @@ function composeIndexMain(club, splits, sectionHtml) {
 
 // ---------- Shell rendering (shared by index.html and every sub-page) ----------
 function renderShell(data) {
-    const template = fs.readFileSync(path.join(TEMPLATE_DIR, "page.html"), "utf8");
+    const template = fs.readFileSync(resolveTemplatePath("page.html"), "utf8");
     return fillTokens(template, data);
 }
 
@@ -556,7 +576,7 @@ function buildFontLinkHref(theme) {
 }
 
 function renderAppShellPage(club, variant) {
-    const template = fs.readFileSync(path.join(TEMPLATE_DIR, "app-shell.html"), "utf8");
+    const template = fs.readFileSync(resolveTemplatePath("app-shell.html"), "utf8");
     const clubNameEsc = escapeHtml(club.clubName);
     return fillTokens(template, {
         pageTitle: clubNameEsc,
@@ -615,6 +635,7 @@ async function copyAndOptimizeImages(clubDir) {
 async function buildClub(slug, validate) {
     const clubDir = clubDataDir(slug);
     const jsonPath = path.join(clubDir, "club.json");
+    TEMPLATE_OVERRIDE_DIR = path.join(clubDir, "custom-template");
 
     if (!fs.existsSync(jsonPath)) {
         console.warn(`⚠ [${slug}] no club.json found at ${jsonPath} — skipping.`);
@@ -690,13 +711,13 @@ async function buildClub(slug, validate) {
             generatedFiles.push(s.file);
         }
 
-        fs.copyFileSync(path.join(TEMPLATE_DIR, "style.css"), path.join(DIST_DIR, "style.css"));
+        fs.copyFileSync(resolveTemplatePath("style.css"), path.join(DIST_DIR, "style.css"));
     } else {
         // ---- App-shell design: sidebar + client-side tabs, one page only.
         // "multipage" = no Home teasers, "dynamic" = Home teasers. ----
         const variant = mode === "multipage" ? "no-teasers" : "teasers";
         fs.writeFileSync(path.join(DIST_DIR, "index.html"), renderAppShellPage(club, variant), "utf8");
-        fs.copyFileSync(path.join(TEMPLATE_DIR, "app-shell.css"), path.join(DIST_DIR, "app-shell.css"));
+        fs.copyFileSync(resolveTemplatePath("app-shell.css"), path.join(DIST_DIR, "app-shell.css"));
         generatedFiles = ["index.html"];
     }
 
