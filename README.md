@@ -10,6 +10,14 @@ engine, pulled in via `git subtree`. Engine bugs/features are fixed there and
 propagated here — a local edit under `generator/` risks a conflict the next
 time that sync runs.
 
+**Want a custom design for this club only?** Add a `custom-template/` folder
+here at the repo root (sibling to `club.json`, not inside `generator/`),
+mirroring `generator/template/`'s structure — e.g. `custom-template/style.css`
+or `custom-template/sections/officers.html`. The build uses any file found
+there instead of the built-in default, and falls back to the default for
+anything you don't override. This is the supported way to diverge from the
+shared design; it never conflicts with future engine syncs.
+
 ## Building locally
 
 ```bash
