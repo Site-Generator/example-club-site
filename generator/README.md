@@ -12,7 +12,7 @@ site, you're in the wrong repo — go to that club's own `<slug>-site` repo.
 ## What's here
 
 ```
-build.js               # reads club.json, validates it, renders HTML, optimizes images
+build.js               # reads club.json, validates it, renders HTML, optimizes+strips images
 club.schema.json        # ajv schema every club.json must satisfy
 wrangler.jsonc          # Cloudflare Workers config (assets.directory = dist)
 scripts/
@@ -51,6 +51,17 @@ controlled by `CLUB_DATA_DIR`:
   directory. In a club repo where this engine sits at `generator/` and
   `club.json` sits one level up at the repo root, `CLUB_DATA_DIR=..` is what
   every real Cloudflare project sets.
+
+## Image metadata
+
+Every uploaded raster image (jpg/png/webp/tiff/gif) is re-encoded through
+`sharp` before it lands in `dist/images/` — not just the ones being resized
+for exceeding `MAX_WIDTH`. `sharp` drops EXIF/ICC/GPS metadata by default
+unless `.withMetadata()` is called, so this strips things like a photo's
+camera model or embedded GPS location before it becomes a publicly served
+file, even for small images that don't need resizing. Dimensions, format,
+and animation (GIF/WEBP) are preserved — this is a metadata-only pass, not a
+quality change. SVGs are copied through as-is (not run through sharp).
 
 ## Letting one club customize its design
 
