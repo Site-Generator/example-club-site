@@ -82,16 +82,28 @@ construction.
 
 ## Propagating a fix to every club
 
-Pushing a change here does **not** automatically update any club repo. Each
-club repo pulls this engine in via `git subtree`, so after pushing a fix here,
-someone with push access to every club repo needs to run, per club repo:
+Pushing a change here does **not** directly update any club repo — each club
+repo pulls this engine in via `git subtree`, which needs an explicit pull to
+receive anything new.
+
+**Automatic:** `.github/workflows/notify-fleet.yml` fires on every push to
+`main` and sends a `repository_dispatch` to the private `club-fleet-tools`
+repo, which runs the actual sync. This file deliberately contains zero
+club-specific information (no repo names, no URLs) since it's copied into
+every club's `generator/.github/workflows/` via subtree along with everything
+else here — only `club-fleet-tools`'s own coordinates are referenced. It
+authenticates via the `FLEET_DISPATCH_TOKEN` secret (repository secret on
+*this* repo, fine-grained, scoped to write access on just `club-fleet-tools`
+— see that repo's README for the full secrets setup).
+
+**Manual fallback**, if the automation is ever down: someone with push access
+to every club repo runs, per club repo:
 
 ```bash
 git subtree pull --prefix=generator <this-repo-url> main --squash
 git push
 ```
 
-That loop (and the roster of club repo URLs) lives in the separate, private
-`club-fleet-tools` repo — deliberately not here, since anything committed to
-this repo's `main` branch ends up copied into every club's `generator/` folder,
-and the roster shouldn't be visible to every club's officers.
+That loop (scripted as `sync-generator.sh`) and the roster of club repo URLs
+live in `club-fleet-tools` — deliberately not here, since the roster
+shouldn't be visible to every club's officers.
