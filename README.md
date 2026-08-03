@@ -33,3 +33,5 @@ This repo's Cloudflare Workers project is configured with:
 - Build variables: `CLUB_SLUG=example-club`, `CLUB_DATA_DIR=..`
 - Build command: `node build.js`
 - Deploy command: `npm run deploy`
+
+<!-- Cloudflare deploy check: 2026-08-03 -->
