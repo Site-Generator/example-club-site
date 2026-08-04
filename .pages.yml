@@ -160,7 +160,6 @@ content:
       - name: images
         label: "Gallery Images"
         type: image
-        list: true
         options:
           media: images
           multiple:
