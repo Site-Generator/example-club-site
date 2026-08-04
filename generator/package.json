@@ -6,15 +6,11 @@
   "scripts": {
     "test": "jest",
     "build": "node build.js",
-    "deploy": "node scripts/deploy.js",
-    "preview": "wrangler dev"
+    "preview": "node scripts/_dev-static-server.js"
   },
   "dependencies": {
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
     "sharp": "^0.35.3"
-  },
-  "devDependencies": {
-    "wrangler": "^4.114.0"
   }
 }

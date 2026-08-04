@@ -13,7 +13,6 @@ const ROOT = __dirname;
 const TEMPLATE_DIR = path.join(ROOT, "template");
 const DIST_DIR = path.join(ROOT, "dist");
 const SCHEMA_PATH = path.join(ROOT, "club.schema.json");
-const BUILD_MARKER_PATH = path.join(ROOT, ".club-build-slug");
 
 // Set once per build (in buildClub(), before any rendering happens) to that
 // club's own custom-template/ folder, sibling to its club.json. Safe as a
@@ -728,15 +727,6 @@ async function buildClub(slug, validate) {
     }
 
     await copyAndOptimizeImages(clubDir);
-
-    // Records which club this build actually produced, so scripts/deploy.js
-    // (run as a separate command, possibly with its own --club= typed by
-    // hand in the Cloudflare dashboard) can refuse to publish if it's ever
-    // given a different slug than what was just built. Deliberately NOT
-    // inside dist/ — that directory is uploaded wholesale as public static
-    // assets, and this marker has no business being a fetchable file on
-    // the live site.
-    fs.writeFileSync(BUILD_MARKER_PATH, slug, "utf8");
 
     console.log(`✓ [${slug}] built → dist/{${generatedFiles.join(", ")}}`);
     return true;
