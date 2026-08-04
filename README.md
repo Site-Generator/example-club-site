@@ -14,11 +14,9 @@ site, you're in the wrong repo — go to that club's own `<slug>-site` repo.
 ```
 build.js               # reads club.json, validates it, renders HTML, optimizes+strips images
 club.schema.json        # ajv schema every club.json must satisfy
-wrangler.jsonc          # Cloudflare Workers config (assets.directory = dist)
 scripts/
-  club-target.js         # slug -> Worker name resolution, shared by build.js + deploy.js
-  deploy.js               # wrangler deploy wrapper
-  _dev-static-server.js   # throwaway local preview server (not part of build/deploy)
+  club-target.js         # slug/data-dir resolution, shared by build.js and every club's CI
+  _dev-static-server.js   # throwaway local preview server (not part of the build)
 template/                # page.html, app-shell.html, style.css, app-shell.css, sections/*.html
 ```
 
@@ -37,11 +35,11 @@ node build.js --club=test-fixture
 
 ## CLI / environment variables
 
-`build.js` and `scripts/deploy.js` both resolve a club slug the same way (see
+`build.js` resolves a club slug the same way every consumer does (see
 `scripts/club-target.js`):
 1. `--club=<slug>` flag
 2. `CLUB_SLUG` environment variable
-3. Falls back to `example-club` (build.js only; deploy.js requires one to be set)
+3. Falls back to `example-club`
 
 Once a slug is resolved, where its `club.json`/`images/` actually live is
 controlled by `CLUB_DATA_DIR`:
@@ -50,7 +48,7 @@ controlled by `CLUB_DATA_DIR`:
 - **Set** (e.g. `CLUB_DATA_DIR=..`): resolves relative to this repo's own
   directory. In a club repo where this engine sits at `generator/` and
   `club.json` sits one level up at the repo root, `CLUB_DATA_DIR=..` is what
-  every real Cloudflare project sets.
+  every real club's GitHub Pages workflow sets.
 
 ## Image metadata
 
