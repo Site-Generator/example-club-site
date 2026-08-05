@@ -23,15 +23,13 @@ shared design; it never conflicts with future engine syncs.
 ```bash
 npm --prefix generator install
 CLUB_DATA_DIR=.. CLUB_SLUG=example-club node generator/build.js
-npm --prefix generator run preview   # serves generator/dist/ via wrangler dev
+npm --prefix generator run preview   # serves generator/dist/ at localhost:8877
 ```
 
 ## Deploying
 
-This repo's Cloudflare Workers project is configured with:
-- Root directory: `generator/`
-- Build variables: `CLUB_SLUG=example-club`, `CLUB_DATA_DIR=..`
-- Build command: `node build.js`
-- Deploy command: `npm run deploy`
-
-<!-- Cloudflare deploy check: 2026-08-03 -->
+Pushes to `main` deploy automatically via
+[`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml),
+which builds with `CLUB_SLUG=example-club`, `CLUB_DATA_DIR=..` and publishes
+`generator/dist/` to GitHub Pages. The repo's Pages source (Settings → Pages)
+must be set to "GitHub Actions".
